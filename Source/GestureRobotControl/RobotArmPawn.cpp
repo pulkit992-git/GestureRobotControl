@@ -49,7 +49,7 @@ void ARobotArmPawn::Tick(float DeltaTime)
 	PrimaryActorTick.bCanEverTick = true;
 
 	// set a default starting point
-	IKTargetLocation = FVector(50.0f, 0.0f, 50.0f);
+	//IKTargetLocation = FVector(50.0f, 0.0f, 50.0f);
 }
 
 // Called to bind functionality to input
@@ -68,8 +68,8 @@ void ARobotArmPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 void ARobotArmPawn::HandleMoveXY(const FInputActionValue& Value)
 {
 	FVector2D MovementVector = Value.Get<FVector2D>();
-	IKTargetLocation.X += MovementVector.X * 5.0f;
-	IKTargetLocation.Y += MovementVector.Y * 5.0f;
+	IKTargetLocation.X += MovementVector.X;
+	IKTargetLocation.Y += MovementVector.Y;
 
 	UE_LOG(LogTemp, Display, TEXT ("%f %f"), MovementVector.X, MovementVector.Y);
 }
@@ -77,7 +77,7 @@ void ARobotArmPawn::HandleMoveXY(const FInputActionValue& Value)
 void ARobotArmPawn::HandleMoveZ(const FInputActionValue& Value)
 {
 	float ZMovement = Value.Get<float>();
-	IKTargetLocation.Z += ZMovement * 5.0f;
+	IKTargetLocation.Z += ZMovement;
 
 	UE_LOG(LogTemp, Display, TEXT("%f"), ZMovement);
 }
