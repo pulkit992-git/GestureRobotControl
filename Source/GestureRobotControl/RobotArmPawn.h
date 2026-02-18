@@ -48,6 +48,12 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Input")
 	UInputAction* MoveZAction;
 
+	UPROPERTY()
+	FVector RobotBaseLocation;
+
+	UPROPERTY(EditAnywhere)
+	float MinimumSafeRadius = 30.0f;
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

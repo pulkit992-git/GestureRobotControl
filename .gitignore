@@ -73,3 +73,9 @@ Plugins/**/Intermediate/*
 
 # Cache files for the editor to use
 DerivedDataCache/*
+
+# Python AI Scripting
+AI_Controller/venv/
+AI_Controller/__pycache__/
+*.pyc
+.ipynb_checkpoints/

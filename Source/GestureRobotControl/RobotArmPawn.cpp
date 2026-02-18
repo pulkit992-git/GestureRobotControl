@@ -39,6 +39,8 @@ void ARobotArmPawn::BeginPlay()
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
 		}
 	}
+
+	RobotBaseLocation = GetActorLocation();
 }
 
 // Called every frame
@@ -50,6 +52,16 @@ void ARobotArmPawn::Tick(float DeltaTime)
 
 	// set a default starting point
 	//IKTargetLocation = FVector(50.0f, 0.0f, 50.0f);
+
+	float CurrentDistance = FVector::Dist(IKTargetLocation, RobotBaseLocation);
+
+	if (CurrentDistance < MinimumSafeRadius)
+	{
+		// 3. Push it to the closest safe point on the sphere's edge
+		FVector DirectionFromBase = IKTargetLocation - RobotBaseLocation;
+		DirectionFromBase.Normalize();
+		IKTargetLocation = RobotBaseLocation + (DirectionFromBase * MinimumSafeRadius);
+	}
 }
 
 // Called to bind functionality to input
