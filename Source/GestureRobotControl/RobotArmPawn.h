@@ -12,6 +12,7 @@ class UInputAction;
 class USpringArmComponent;
 class UCameraComponent;
 
+
 UCLASS()
 class GESTUREROBOTCONTROL_API ARobotArmPawn : public APawn
 {
@@ -60,6 +61,9 @@ public:
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+	UFUNCTION()
+	void UpdateKinematics(FVector2D MoveXY, float MoveZ, bool Grab);
 
 private:
 	void HandleMoveXY(const FInputActionValue& Value);

@@ -74,7 +74,7 @@ while cap.isOpened():
     # getting height and width of camera screen
     h, w, _ = frame.shape
 
-    right_dx, right_dy = 0.0, 0.0
+    right_dx, right_dy, right_dz = 0.0, 0.0, 0.0
 
     # Right joystick (aim) calculating center and radius of right joystick
     RIGHT_CENTER = (int(w * 0.75), int(h * 0.7))
@@ -116,12 +116,17 @@ while cap.isOpened():
             radius = RIGHT_RADIUS
             right_dx, right_dy = get_joystick_vector (hand_X, hand_Y,RIGHT_CENTER, RIGHT_RADIUS)
           
+            # Depth calculation
+            lm = hand_landmarks.landmark[9]
+            right_dz = round (lm.z * -100, 2)
+            right_dz = np.clip (right_dz, -1, 1)
+
             # Visual feedback
             cv2.line(frame, (cx, cy), (hand_X, hand_Y), (255, 0, 0), 3)
             cv2.circle(frame, (hand_X, hand_Y), 10, (255, 0, 0), -1)
 
             printTxt = ""
-            printTxt = hand_label + " " + str(right_dx) + ", " + str(right_dy) + ", " + str (0) + ", " + str(grab)
+            printTxt = hand_label + " " + str(right_dx) + ", " + str(right_dy) + ", " + str (right_dz) + ", " + str(grab)
 
             cv2.putText(
                 frame,

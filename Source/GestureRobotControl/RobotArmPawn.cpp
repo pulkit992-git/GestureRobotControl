@@ -6,6 +6,8 @@
 #include "EnhancedInputSubsystems.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
+#include "EngineUtils.h"
+#include "UDPReceiver.h"
 
 // Sets default values
 ARobotArmPawn::ARobotArmPawn()
@@ -41,6 +43,30 @@ void ARobotArmPawn::BeginPlay()
 	}
 
 	RobotBaseLocation = GetActorLocation();
+
+	AUDPReceiver* UDPReceiver;
+	
+	for (TActorIterator<AUDPReceiver> It(GetWorld()); It; ++It)
+	{
+		UDPReceiver = *It;
+		if (UDPReceiver)
+		{
+			UDPReceiver->RoboArm = this;
+			UE_LOG(LogTemp, Error, TEXT ("Assigned robo arm"));
+			break;
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("Couldn't find"));
+		}
+	}
+	
+}
+
+void ARobotArmPawn::UpdateKinematics(FVector2D MoveXY, float MoveZ, bool Grab)
+{
+	IKTargetLocation.X += MoveXY.X;
+	IKTargetLocation.Y += MoveXY.Y;
 }
 
 // Called every frame
