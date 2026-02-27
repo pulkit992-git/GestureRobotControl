@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
 #include "InputActionValue.h"
+#include "PhysicsEngine/PhysicsConstraintComponent.h"
 #include "RobotArmPawn.generated.h"
 
 class UInputMappingContext;
@@ -65,9 +66,29 @@ public:
 	UFUNCTION()
 	void UpdateKinematics(FVector2D MoveXY, float MoveZ, bool Grab);
 
+	UPROPERTY(VisibleAnywhere, Category = "Physics")
+	class UPhysicsConstraintComponent* LeftFingerConstraint;
+
+	UPROPERTY(VisibleAnywhere, Category = "Physics")
+	class UPhysicsConstraintComponent* RightFingerConstraint;
+
+	UPROPERTY(EditAnywhere, Category = "Physics")
+	float GripStrength = 5000.0f;
+
+	UPROPERTY(EditAnywhere, Category = "Physics")
+	bool bIsClawClosed;
+
+	void UpdateClawState(bool bShouldClose);
+
 private:
 	void HandleMoveXY(const FInputActionValue& Value);
 	void HandleMoveZ(const FInputActionValue& Value);
 
 	FVector CurrentInputDirection;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Physics", meta = (AllowPrivateAccess = "true"))
+	class UPhysicsConstraintComponent* LeftFingerConstraint;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Physics", meta = (AllowPrivateAccess = "true"))
+	class UPhysicsConstraintComponent* RightFingerConstraint;
 };

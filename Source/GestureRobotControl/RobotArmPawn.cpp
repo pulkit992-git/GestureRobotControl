@@ -27,6 +27,9 @@ ARobotArmPawn::ARobotArmPawn()
 	// 3. Setup the Camera
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach to end of boom
+
+	LeftFingerConstraint = CreateDefaultSubobject<UPhysicsConstraintComponent>(TEXT("LeftFingerConstraint"));
+	RightFingerConstraint = CreateDefaultSubobject<UPhysicsConstraintComponent>(TEXT("RightFingerConstraint"));
 }
 
 // Called when the game starts or when spawned
@@ -100,6 +103,34 @@ void ARobotArmPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 		EnhancedInputComponent->BindAction(MoveXYAction, ETriggerEvent::Triggered, this, &ARobotArmPawn::HandleMoveXY);
 
 		EnhancedInputComponent->BindAction(MoveZAction, ETriggerEvent::Triggered, this, &ARobotArmPawn::HandleMoveZ);
+	}
+}
+
+void ARobotArmPawn::UpdateClawState(bool bShouldClose)
+{
+	if (bIsClawClosed != bShouldClose)
+	{
+		bIsClawClosed = bShouldClose;
+
+		float TargetAngle = bIsClawClosed ? 90.0f : 0.0f;
+		FRotator TargetRotation(0, TargetAngle, 0);
+
+		if (LeftFingerConstraint && RightFingerConstraint)
+		{
+			
+			// 1. Enable the "Motor"
+			LeftFingerConstraint->SetAngularDriveMode(EAngularDriveMode::TwistAndSwing);
+
+			// 2. Set the Strength (Stiffness). Higher = stronger grip
+			LeftFingerConstraint->SetAngularDriveParams(GripStrength, 100.0f, 0.0f);
+
+			// 3. Set the Goal. The finger will move until it hits something.
+			LeftFingerConstraint->SetAngularOrientationTarget(TargetRotation);
+
+			// Repeat for Right Finger (usually with an inverted Y or Z for the other side)
+			RightFingerConstraint->SetAngularOrientationTarget(TargetRotation);
+			
+		}
 	}
 }
 
