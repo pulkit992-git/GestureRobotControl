@@ -6,12 +6,15 @@
 #include "GameFramework/Pawn.h"
 #include "InputActionValue.h"
 #include "PhysicsEngine/PhysicsConstraintComponent.h"
+#include "Components/SkeletalMeshComponent.h"
 #include "RobotArmPawn.generated.h"
+
 
 class UInputMappingContext;
 class UInputAction;
 class USpringArmComponent;
 class UCameraComponent;
+
 
 
 UCLASS()
@@ -50,6 +53,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Input")
 	UInputAction* MoveZAction;
 
+	UPROPERTY(EditAnywhere, Category = "Input")
+	UInputAction* ClawAction;
+
 	UPROPERTY()
 	FVector RobotBaseLocation;
 
@@ -76,9 +82,14 @@ public:
 	float GripStrength = 5000.0f;
 
 	UPROPERTY(EditAnywhere, Category = "Physics")
-	bool bIsClawClosed;
+	bool bIsClawClosed = false;
+
+	void OnToggleClaw();
 
 	void UpdateClawState(bool bShouldClose);
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Robot")
+	USkeletalMeshComponent* MeshComponent;
 
 private:
 	void HandleMoveXY(const FInputActionValue& Value);
@@ -86,9 +97,9 @@ private:
 
 	FVector CurrentInputDirection;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Physics", meta = (AllowPrivateAccess = "true"))
-	class UPhysicsConstraintComponent* LeftFingerConstraint;
+	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Physics", meta = (AllowPrivateAccess = "true"))
+	//class UPhysicsConstraintComponent* LeftFingerConstraint;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Physics", meta = (AllowPrivateAccess = "true"))
-	class UPhysicsConstraintComponent* RightFingerConstraint;
+	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Physics", meta = (AllowPrivateAccess = "true"))
+	//class UPhysicsConstraintComponent* RightFingerConstraint;
 };

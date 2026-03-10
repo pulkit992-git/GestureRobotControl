@@ -28,6 +28,9 @@ ARobotArmPawn::ARobotArmPawn()
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach to end of boom
 
+	MeshComponent = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("RobotMesh"));
+	MeshComponent->SetupAttachment(RootComponent);
+
 	LeftFingerConstraint = CreateDefaultSubobject<UPhysicsConstraintComponent>(TEXT("LeftFingerConstraint"));
 	RightFingerConstraint = CreateDefaultSubobject<UPhysicsConstraintComponent>(TEXT("RightFingerConstraint"));
 }
@@ -36,6 +39,10 @@ ARobotArmPawn::ARobotArmPawn()
 void ARobotArmPawn::BeginPlay()
 {
 	Super::BeginPlay();
+
+	// 
+	MeshComponent->SetAllBodiesBelowSimulatePhysics(TEXT("Claw0"), true, true);
+	MeshComponent->SetAllBodiesBelowSimulatePhysics(TEXT("Claw1"), true, true);
 	
 	if (APlayerController* PC = Cast<APlayerController>(GetController()))
 	{
@@ -103,33 +110,42 @@ void ARobotArmPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 		EnhancedInputComponent->BindAction(MoveXYAction, ETriggerEvent::Triggered, this, &ARobotArmPawn::HandleMoveXY);
 
 		EnhancedInputComponent->BindAction(MoveZAction, ETriggerEvent::Triggered, this, &ARobotArmPawn::HandleMoveZ);
+
+		EnhancedInputComponent->BindAction(ClawAction, ETriggerEvent::Started, this, &ARobotArmPawn::OnToggleClaw);
 	}
+}
+
+void ARobotArmPawn::OnToggleClaw()
+{
+	bIsClawClosed = !bIsClawClosed;
+
+	UpdateClawState(bIsClawClosed);
+
+	UE_LOG(LogTemp, Display, TEXT ("ClawState %s"), bIsClawClosed ? TEXT ("Closed") : TEXT ("Open"));
 }
 
 void ARobotArmPawn::UpdateClawState(bool bShouldClose)
 {
-	if (bIsClawClosed != bShouldClose)
+	// 0 degree is open and 45 degree is fully closed
+	float TargetAngle = bShouldClose ? 25.0f : 0.0f;
+	FQuat TargetQuat = FQuat(FRotator(0, TargetAngle, 0));
+
+	if (MeshComponent)
 	{
-		bIsClawClosed = bShouldClose;
+		// In modern UE, this returns a pointer to the instance if found
+		FConstraintInstance* LeftInstance = MeshComponent->FindConstraintInstance(TEXT("Claw0"));
+		FConstraintInstance* RightInstance = MeshComponent->FindConstraintInstance(TEXT("Claw1"));
 
-		float TargetAngle = bIsClawClosed ? 90.0f : 0.0f;
-		FRotator TargetRotation(0, TargetAngle, 0);
-
-		if (LeftFingerConstraint && RightFingerConstraint)
+		if (LeftInstance && RightInstance)
 		{
-			
-			// 1. Enable the "Motor"
-			LeftFingerConstraint->SetAngularDriveMode(EAngularDriveMode::TwistAndSwing);
+			// Set the target orientation for the physics motor
+			LeftInstance->SetAngularOrientationTarget(TargetQuat);
+			RightInstance->SetAngularOrientationTarget(TargetQuat);
 
-			// 2. Set the Strength (Stiffness). Higher = stronger grip
-			LeftFingerConstraint->SetAngularDriveParams(GripStrength, 100.0f, 0.0f);
+			MeshComponent->WakeRigidBody(TEXT("Claw0"));
+			MeshComponent->WakeRigidBody(TEXT("Claw1"));
 
-			// 3. Set the Goal. The finger will move until it hits something.
-			LeftFingerConstraint->SetAngularOrientationTarget(TargetRotation);
-
-			// Repeat for Right Finger (usually with an inverted Y or Z for the other side)
-			RightFingerConstraint->SetAngularOrientationTarget(TargetRotation);
-			
+			UE_LOG(LogTemp, Warning, TEXT("Claw Actuators set to: %f"), TargetAngle);
 		}
 	}
 }
