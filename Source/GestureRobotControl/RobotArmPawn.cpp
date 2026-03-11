@@ -20,7 +20,7 @@ ARobotArmPawn::ARobotArmPawn()
 
 	// 2. Setup the Spring Arm
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
-	CameraBoom->SetupAttachment(RootComponent); // Attach to your root
+	CameraBoom->SetupAttachment(RootComponent); // Attach to root
 	CameraBoom->TargetArmLength = 400.0f;       // Distance from the robot
 	CameraBoom->SetRelativeRotation(FRotator(-45.f, 0.f, 0.f)); // Angled view
 
@@ -39,8 +39,7 @@ ARobotArmPawn::ARobotArmPawn()
 void ARobotArmPawn::BeginPlay()
 {
 	Super::BeginPlay();
-
-	// 
+	
 	MeshComponent->SetAllBodiesBelowSimulatePhysics(TEXT("Claw0"), true, true);
 	MeshComponent->SetAllBodiesBelowSimulatePhysics(TEXT("Claw1"), true, true);
 	
@@ -50,6 +49,8 @@ void ARobotArmPawn::BeginPlay()
 		{
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
 		}
+
+		PC->SetShowMouseCursor(true);
 	}
 
 	RobotBaseLocation = GetActorLocation();
@@ -77,6 +78,27 @@ void ARobotArmPawn::UpdateKinematics(FVector2D MoveXY, float MoveZ, bool Grab)
 {
 	IKTargetLocation.X += MoveXY.X;
 	IKTargetLocation.Y += MoveXY.Y;
+}
+
+void ARobotArmPawn::HandleMouseClick()
+{
+	APlayerController* PC = Cast<APlayerController>(GetController());
+	if (PC)
+	{
+		FHitResult Hit;
+		if (PC->GetHitResultUnderCursor(ECC_Visibility, false, Hit))
+		{
+			FVector ClickedPoint = Hit.Location;
+			AActor* HitActor = Hit.GetActor();
+
+			UpdateIKTarget(ClickedPoint, HitActor);
+		}
+	}
+}
+
+void ARobotArmPawn::UpdateIKTarget(FVector ClickedPoint, AActor* HitActor)
+{
+	UE_LOG(LogTemp, Display, TEXT ("MouseClicked "));
 }
 
 // Called every frame
@@ -112,6 +134,8 @@ void ARobotArmPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 		EnhancedInputComponent->BindAction(MoveZAction, ETriggerEvent::Triggered, this, &ARobotArmPawn::HandleMoveZ);
 
 		EnhancedInputComponent->BindAction(ClawAction, ETriggerEvent::Started, this, &ARobotArmPawn::OnToggleClaw);
+
+		EnhancedInputComponent->BindAction(MouseClick, ETriggerEvent::Started, this, &ARobotArmPawn::HandleMouseClick);
 	}
 }
 
@@ -127,7 +151,7 @@ void ARobotArmPawn::OnToggleClaw()
 void ARobotArmPawn::UpdateClawState(bool bShouldClose)
 {
 	// 0 degree is open and 45 degree is fully closed
-	float TargetAngle = bShouldClose ? 25.0f : 0.0f;
+	float TargetAngle = bShouldClose ? 25.0f : -15.0f;
 	FQuat TargetQuat = FQuat(FRotator(0, TargetAngle, 0));
 
 	if (MeshComponent)

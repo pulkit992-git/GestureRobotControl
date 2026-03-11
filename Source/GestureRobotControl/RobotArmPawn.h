@@ -15,7 +15,13 @@ class UInputAction;
 class USpringArmComponent;
 class UCameraComponent;
 
-
+UENUM (BlueprintType)
+enum class ERobotState : uint8
+{
+	Idle,
+	MovingToPick,
+	MovingToPlace
+};
 
 UCLASS()
 class GESTUREROBOTCONTROL_API ARobotArmPawn : public APawn
@@ -28,6 +34,9 @@ public:
 
 	UPROPERTY (BlueprintReadWrite, Category = "Robot Control")
 	FVector IKTargetLocation;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Robot Control")
+	FRotator IKTargetRotation;
 
 	UPROPERTY (EditAnywhere, Category = "Robot Control")
 	float MoveSpeed = 100.0f;
@@ -56,6 +65,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Input")
 	UInputAction* ClawAction;
 
+	UPROPERTY(EditAnywhere, Category = "Input")
+	UInputAction* MouseClick;
+
 	UPROPERTY()
 	FVector RobotBaseLocation;
 
@@ -71,6 +83,12 @@ public:
 
 	UFUNCTION()
 	void UpdateKinematics(FVector2D MoveXY, float MoveZ, bool Grab);
+
+	UFUNCTION()
+	void HandleMouseClick();
+
+	UFUNCTION()
+	void UpdateIKTarget(FVector ClickedPoint, AActor* HitActor);
 
 	UPROPERTY(VisibleAnywhere, Category = "Physics")
 	class UPhysicsConstraintComponent* LeftFingerConstraint;
