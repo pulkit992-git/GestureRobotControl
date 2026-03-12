@@ -38,8 +38,14 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "Robot Control")
 	FRotator IKTargetRotation;
 
+	FVector TargetLocation;
+	FRotator TargetRotation;
+	
+	FVector CurrentLocation;
+	FRotator CurrentRotation;
+
 	UPROPERTY (EditAnywhere, Category = "Robot Control")
-	float MoveSpeed = 100.0f;
+	float MoveSpeed = .1f;
 
 	// The Spring Arm (controls camera distance/rotation)
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
@@ -114,6 +120,8 @@ private:
 	void HandleMoveZ(const FInputActionValue& Value);
 
 	FVector CurrentInputDirection;
+
+	ERobotState CurrentState;
 
 	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Physics", meta = (AllowPrivateAccess = "true"))
 	//class UPhysicsConstraintComponent* LeftFingerConstraint;

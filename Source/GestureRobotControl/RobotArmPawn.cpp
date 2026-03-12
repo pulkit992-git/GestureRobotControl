@@ -39,6 +39,9 @@ ARobotArmPawn::ARobotArmPawn()
 void ARobotArmPawn::BeginPlay()
 {
 	Super::BeginPlay();
+
+	CurrentState = ERobotState::Idle;
+	//CurrentLocation = MeshComponent->GetSocketLocation(TEXT("joint5"));
 	
 	MeshComponent->SetAllBodiesBelowSimulatePhysics(TEXT("Claw0"), true, true);
 	MeshComponent->SetAllBodiesBelowSimulatePhysics(TEXT("Claw1"), true, true);
@@ -98,7 +101,12 @@ void ARobotArmPawn::HandleMouseClick()
 
 void ARobotArmPawn::UpdateIKTarget(FVector ClickedPoint, AActor* HitActor)
 {
-	UE_LOG(LogTemp, Display, TEXT ("MouseClicked "));
+	FVector RobotWorldLocation = MeshComponent->GetComponentLocation();
+
+	TargetLocation = ClickedPoint - RobotWorldLocation;
+	TargetRotation = HitActor->GetActorRotation();
+
+	CurrentState = ERobotState::MovingToPick;
 }
 
 // Called every frame
@@ -113,12 +121,25 @@ void ARobotArmPawn::Tick(float DeltaTime)
 
 	float CurrentDistance = FVector::Dist(IKTargetLocation, RobotBaseLocation);
 
+	/*
 	if (CurrentDistance < MinimumSafeRadius)
 	{
 		// 3. Push it to the closest safe point on the sphere's edge
 		FVector DirectionFromBase = IKTargetLocation - RobotBaseLocation;
 		DirectionFromBase.Normalize();
 		IKTargetLocation = RobotBaseLocation + (DirectionFromBase * MinimumSafeRadius);
+	}
+	*/
+
+	if (CurrentState != ERobotState::Idle)
+	{
+		CurrentLocation = FMath::VInterpTo(CurrentLocation, TargetLocation, DeltaTime, MoveSpeed);
+		CurrentRotation = FMath::RInterpTo(CurrentRotation, TargetRotation, DeltaTime, MoveSpeed);
+
+		UE_LOG(LogTemp, Warning, TEXT ("Current Location %s, TargetLocation %s"), *CurrentLocation.ToString(), *TargetLocation.ToString());
+
+		IKTargetLocation = CurrentLocation;
+		IKTargetRotation = CurrentRotation;
 	}
 }
 
